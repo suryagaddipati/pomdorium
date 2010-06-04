@@ -2,68 +2,96 @@
 <html>
 <head>
 <script>
-  function showNotification(title,body){
-    notification = 	webkitNotifications.createNotification(
-	  'icon.png',  // icon url - can be relative
-	  title,  // notification title
-	   body  // notification body text
-	)
+function showNotification(title,body){
+	notification = 	webkitNotifications.createNotification('icon.png',  title, body  )
 	notification.show()
 	window.setTimeout(function(){
 		notification.cancel()
-	},2000)
-}
+		},2000)
+	}
 
 
- timerStarted = false
- 
- chrome.browserAction.setBadgeText({text:'25:00'})
-//chrome.browserAction.setBadgeBackgroundColor({color:[0, 200, 0, 100]});
+	timerStarted = false
+	breakInProgress = false
+	chrome.browserAction.setBadgeText({text:'25:00'})
+	chrome.browserAction.setBadgeBackgroundColor({color:[1, 200, 0, 100]});
 
-  chrome.browserAction.onClicked.addListener(function(tab) { 
-	if(!timerStarted){
-		showNotification ('Pomodoro Started','All the Best!!!' );
-		
-		 timerStarted = true
-		  var i = 0;
-	 	intervalId =  window.setInterval(function() {
-	  	    i++;
-	        var mins =  Math.floor ( (1500-i)/60)
-			  var secs = (1500-i)%60
-			  chrome.browserAction.setBadgeText({text:mins +':'+ secs})
-	 	  }, 1000);
-	} else{
-		 interrupt()
-	} 
- 	
+	chrome.browserAction.onClicked.addListener(function(tab) { 
+		if(!breakInProgress){
+			if(!timerStarted){
+				showNotification ('Pomodoro Started','All the Best!!!' )
+				timerStarted = true
+				intervalId =  runTimer(1500,finishPomomdoro)
+			} else{
+				interrupt()
+			}		
 
-  });
+		}else{
+			showNotification ('Cannot Interrupt break!!!','Taking breaks is good for your body and brain. ' );
+		}
 
- chrome.tabs.onUpdated.addListener(function(tabId) {
-	    chrome.tabs.get(tabId, function (tab){
-		        if(tab.url.indexOf('mail.google') > 0 && tab.status === 'complete' ) {
-         			   interrupt()
-		         }
-			
-	  })
-	    
-  	
-});
+	});
 
-function interrupt(){
-	    if(timerStarted){
-	   			chrome.browserAction.setBadgeText({text:'25:00'}) 
+	function runTimer(seconds,callback){
+		var i = 0;	
+		return 		window.setInterval(function() {
+			i++;
+			var mins =  Math.floor ( (seconds-i)/60)
+			var secs = (seconds-i)%60
+			chrome.browserAction.setBadgeText({text:mins +':'+ secs})
+			if(i==seconds){
+				callback.apply()
+			}
+			}, 1000);	
+		}
+
+
+
+
+
+		function finishPomomdoro(){
+			chrome.browserAction.setBadgeText({text:'05:00'}) 
+			window.clearInterval(intervalId)
+			timerStarted=false
+			showNotification ('Pomodoro Finished','Good Job. Dont forget to stretch during your break. ' );
+			startBreak()
+		}
+
+		function startBreak(){
+			breakInProgress = true	
+			var timerId =	runTimer(300,function(){
+				breakInProgress = false;
+				chrome.browserAction.setBadgeText({text:'25:00'}) 
+				window.clearInterval(timerId)	
+				showNotification ('Break Over','Ready for the next one.' );
+			})
+		}
+
+		chrome.tabs.onUpdated.addListener(function(tabId) {
+			chrome.tabs.get(tabId, function (tab){
+				if(tab.url.indexOf('mail.google') > 0 && tab.status === 'complete' ) {
+					interrupt()
+				}
+
+			})
+
+
+		});
+
+		function interrupt(){
+			if(timerStarted){
+				chrome.browserAction.setBadgeText({text:'25:00'}) 
 				window.clearInterval(intervalId)
 				timerStarted=false
-			    showNotification ('Pomodoro Interrupted','Better Luck Next Time!!!' );	
-			 }
-	
-}
+				showNotification ('Pomodoro Interrupted','Better Luck Next Time!!!' );	
+			}
+
+		}
 
 
-</script>
-</head>
+		</script>
+	</head>
 
-<body>
-</body>
-</html>
+	<body>
+	</body>
+	</html>
