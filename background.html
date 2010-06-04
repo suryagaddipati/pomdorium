@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+  function showNotification(title,body){
+    notification = 	webkitNotifications.createNotification(
+	  'icon.png',  // icon url - can be relative
+	  title,  // notification title
+	   body  // notification body text
+	)
+	notification.show()
+	window.setTimeout(function(){
+		notification.cancel()
+	},1000)
+}
+
+
+ timerStarted = false
+ 
+ chrome.browserAction.setBadgeText({text:'25:00'})
+//chrome.browserAction.setBadgeBackgroundColor({color:[0, 200, 0, 100]});
+
+  chrome.browserAction.onClicked.addListener(function(tab) { 
+	if(!timerStarted){
+		showNotification ('Pomodoro Started','All the Best!!!' );
+		
+		 timerStarted = true
+		  var i = 0;
+	 	intervalId =  window.setInterval(function() {
+	  	    i++;
+	        var mins =  Math.floor ( (1500-i)/60)
+			  var secs = (1500-i)%60
+			  chrome.browserAction.setBadgeText({text:mins +':'+ secs})
+	 	  }, 1000);
+	} else{
+		 interrupt()
+	} 
+ 	
+
+  });
+
+ chrome.tabs.onUpdated.addListener(function(tabId) {
+	    chrome.tabs.get(tabId, function (tab){
+		        if(tab.url.indexOf('mail.google') > 0 && tab.status === 'complete' ) {
+         			   interrupt()
+		         }
+			
+	  })
+	    
+  	
+});
+
+function interrupt(){
+		chrome.browserAction.setBadgeText({text:'25:00'}) 
+		window.clearInterval(intervalId)
+		timerStarted=false
+	    showNotification ('Pomodoro Interrupted','Better Luck Next Time!!!' );
+}
+
+
+</script>
+</head>
+
+<body>
+</body>
+</html>

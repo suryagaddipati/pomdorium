@@ -1,0 +1,20 @@
+{
+	"name": "Pomodoro",
+	"version": "1.0",
+	"description": "Extension for pomodoro technique",
+	"background_page": "background.html",
+	"options_page": "options.html",
+	"permissions": [
+	    "tabs","notifications"
+	  ],
+	"icons":{
+		"128":"icon_128.png"
+	},
+	
+	"browser_action":	{
+		"default_icon": "icon.png",
+		"default_title":"25:00",
+		"default_badge_text":"25:00"
+	}
+
+}
